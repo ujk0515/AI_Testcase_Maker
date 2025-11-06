@@ -153,6 +153,7 @@
 <script>
     // AI 모델 이름을 상수로 정의합니다.
     const AI_MODEL = "gemini-2.5-flash";
+    let loadingInterval;
 
     // 파일을 Gemini API가 이해하는 형식으로 변환하는 헬퍼 함수 (오류 처리 강화)
     function fileToGenerativePart(file) {
@@ -223,6 +224,7 @@
         // 타이머 시작 및 이전 결과 초기화
         const startTime = performance.now();
         statsDiv.textContent = '';
+        clearInterval(loadingInterval);
 
         if (!apiKey) {
             alert("Gemini API 키를 입력하세요.");
@@ -234,8 +236,16 @@
             return;
         }
 
-        // 로딩 상태 표시
-        outputDiv.textContent = "파일을 처리하고 AI를 호출 중입니다...";
+        // 로딩 상태 표시 (애니메이션 시작)
+        let dotCount = 1;
+        const baseText = "파일을 처리하고 AI를 호출 중입니다";
+        outputDiv.textContent = baseText + ".";
+        loadingInterval = setInterval(() => {
+            dotCount = (dotCount % 3) + 1;
+            let dots = ".".repeat(dotCount);
+            outputDiv.textContent = baseText + dots;
+        }, 500);
+
         runButton.disabled = true;
         runButton.textContent = "실행 중...";
 
@@ -294,6 +304,7 @@
             console.log("API data parsed.", data);
             
             if (data.candidates && data.candidates.length > 0 && data.candidates[0].content.parts.length > 0) {
+                clearInterval(loadingInterval); // 애니메이션 중지
                 let rawResponse = data.candidates[0].content.parts[0].text;
                 console.log("Raw AI Response Text:", rawResponse);
 
@@ -324,6 +335,7 @@
                 statsDiv.textContent = `소요 시간: ${elapsedTime}초 / TC 개수: ${tcCount}개`;
 
             } else {
+                clearInterval(loadingInterval); // 애니메이션 중지
                 let reason = data.candidates && data.candidates.length > 0 ? data.candidates[0].finishReason : "No response";
                 let message = `AI로부터 유효한 응답을 받지 못했습니다. (Reason: ${reason})`;
                 if(data.promptFeedback) {
@@ -334,12 +346,14 @@
             }
 
         } catch (error) {
+            clearInterval(loadingInterval); // 애니메이션 중지
             const endTime = performance.now();
             const elapsedTime = ((endTime - startTime) / 1000).toFixed(1);
             statsDiv.textContent = `오류 발생! (소요 시간: ${elapsedTime}초)`;
             outputDiv.textContent = `오류 발생: ${error.message}`;
             console.error("Error during AI execution:", error);
         } finally {
+            clearInterval(loadingInterval); // 최종적으로 한번 더 정리
             console.log("Execution finished, resetting button.");
             runButton.disabled = false;
             runButton.textContent = "AI 실행";
