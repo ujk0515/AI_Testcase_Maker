@@ -145,6 +145,7 @@
         <h2>변환</h2>
         <button id="convert-btn">컨버팅</button>
         <div id="result-message" class="result-ui"></div>
+        <div id="ai-stats" style="margin-top: 20px; font-weight: bold;"></div>
     </div>
 </div>
 
@@ -217,6 +218,11 @@
         
         const outputDiv = document.getElementById('ai-output');
         const runButton = document.getElementById('run-ai-btn');
+        const statsDiv = document.getElementById('ai-stats');
+
+        // 타이머 시작 및 이전 결과 초기화
+        const startTime = performance.now();
+        statsDiv.textContent = '';
 
         if (!apiKey) {
             alert("Gemini API 키를 입력하세요.");
@@ -311,6 +317,12 @@
                 outputDiv.textContent = JSON.stringify(parsedJson, null, 2);
                 console.log("Successfully parsed and displayed JSON.");
 
+                // 타이머 종료 및 결과 표시
+                const endTime = performance.now();
+                const elapsedTime = ((endTime - startTime) / 1000).toFixed(1);
+                const tcCount = Array.isArray(parsedJson) ? parsedJson.length : (typeof parsedJson === 'object' && parsedJson !== null ? 1 : 0);
+                statsDiv.textContent = `소요 시간: ${elapsedTime}초 / TC 개수: ${tcCount}개`;
+
             } else {
                 let reason = data.candidates && data.candidates.length > 0 ? data.candidates[0].finishReason : "No response";
                 let message = `AI로부터 유효한 응답을 받지 못했습니다. (Reason: ${reason})`;
@@ -322,6 +334,9 @@
             }
 
         } catch (error) {
+            const endTime = performance.now();
+            const elapsedTime = ((endTime - startTime) / 1000).toFixed(1);
+            statsDiv.textContent = `오류 발생! (소요 시간: ${elapsedTime}초)`;
             outputDiv.textContent = `오류 발생: ${error.message}`;
             console.error("Error during AI execution:", error);
         } finally {
