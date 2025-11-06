@@ -240,21 +240,17 @@
             // --- 프롬프트 재구성 로직 시작 ---
             let finalPrompt = "";
 
-            if (imageFile) {
-                finalPrompt += "Your primary task is to generate test cases based on the attached image, which shows a user interface. Analyze the components and functionality shown in the image.\n\n";
-            }
-
             finalPrompt += userPrompt; // 사용자 기본 프롬프트 추가
 
             if (excelFile) {
                 console.log("Processing Excel file for prompt...");
                 const excelText = await excelToText(excelFile);
-                finalPrompt += "\n\nThe following text from an Excel file is provided as an EXAMPLE of the desired output format. Use this as a template for the JSON structure and column names. DO NOT simply copy the content of this example.";
+                // The user's main prompt explains how to use the example file.
                 finalPrompt += excelText;
                 console.log("Excel file content added to prompt.");
             }
 
-            const fullPrompt = finalPrompt + "\n\nIMPORTANT: The final output must be only a valid JSON array, based on the image content and formatted like the provided example.";
+            const fullPrompt = finalPrompt; // The user's main prompt now enforces the JSON output.
             requestParts.push({ text: fullPrompt });
             console.log("Text prompt part added.");
 
